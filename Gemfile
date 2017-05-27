@@ -12,6 +12,7 @@ gem 'rails', '~> 5.1.1'
 gem 'pg'
 gem 'watir'
 gem 'nokogiri'
+gem 'haml'
 
 # Use Puma as the app server
 gem 'puma', '~> 3.7'

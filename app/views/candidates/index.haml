@@ -1,0 +1,9 @@
+%h1 Candidates
+
+%h5
+	= "Candidate count: #{@candidates.count}"
+
+
+%ul
+	- @candidates.each do |candidate|
+		%li= candidate.email
