@@ -1,0 +1,8 @@
+%h1 Scrapers
+
+= render "shared/navigation"
+
+%div
+	= form_tag '/scrapers/candidate_emails' do 
+		= text_field_tag :domain, "", placeholder: "domain"
+		= submit_tag "Scrape!"
