@@ -1,5 +1,4 @@
-class EmailCrawlerTest
-
+class EmailCrawler
 	def self.test
 		url = "http://nyuwinc.org/"
 		self.for_domain(url, limit: 5)
@@ -17,7 +16,7 @@ class EmailCrawlerTest
 
 	attr_reader :domain, :emails
 
-	def initialize(domain, full_sitemap: false, limit: nil)
+	def initialize(domain, full_sitemap: false)
 		@domain = domain
 		@full_sitemap = full_sitemap
 		@emails = []
@@ -33,7 +32,7 @@ class EmailCrawlerTest
 			puts "Crawling: #{url}"
 			crawl_page(url)
 			page_count += 1
-			break if (!@full_sitemap || (limit && page_count >= limit))
+			break if (!@full_sitemap || (limit && page_count >= limit.to_i))
 			sleep rand(1..3)
 		end
 
@@ -44,7 +43,7 @@ class EmailCrawlerTest
 	end
 
 	def resume(limit: nil)
-		crawl_for_emails(limit: limit)
+		crawl_for_emails(limit: limit.to_i)
 	end
 
 	def show_emails

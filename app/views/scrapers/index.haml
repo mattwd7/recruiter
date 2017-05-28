@@ -1,8 +1,16 @@
 %h1 Scrapers
-
 = render "shared/navigation"
 
-%div
-	= form_tag '/scrapers/candidate_emails' do 
-		= text_field_tag :domain, "", placeholder: "domain"
-		= submit_tag "Scrape!"
+= form_tag '/scrapers/candidate_emails' do 
+	= text_field_tag :domain, "", placeholder: "domain"
+	= text_field_tag :limit, 10
+	= submit_tag "Scrape!"
+
+%h3 Verify new emails:
+= form_tag '/scrapers/verify_emails' do
+	%ul
+		- @candidates.each do |candidate|
+			%li
+				= check_box_tag 'ids[]', candidate.id, true
+				= candidate.email
+	= submit_tag "Verify checked emails"

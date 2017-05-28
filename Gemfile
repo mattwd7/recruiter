@@ -5,11 +5,9 @@ git_source(:github) do |repo_name|
   "https://github.com/#{repo_name}.git"
 end
 
-gem 'mechanize'
-
-
 gem 'rails', '~> 5.1.1'
 gem 'pg'
+# gem 'mechanize'
 gem 'watir'
 gem 'nokogiri'
 gem 'haml'

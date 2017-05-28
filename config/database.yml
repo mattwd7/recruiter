@@ -2,7 +2,7 @@ default: &default
   adapter: postgresql
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  timeout: 5000
+  timeout: 10000
   port: 5432
   pool: 5
 
@@ -10,6 +10,9 @@ development:
   <<: *default
   database: db_dev
   host: localhost
+  prepared_statements: false
+  url: postgres://qhdipcgoxqslsq:4b99f903b36d7057df3aabad09d6e7c14a9c579efee79eb515883cbd7ef8af9d@ec2-54-221-254-72.compute-1.amazonaws.com:5432/d9tts1iilgkml6
+  reaping_frequency: 5 
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".

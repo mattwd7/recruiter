@@ -1,7 +1,7 @@
 class CandidatesController < ApplicationController
 
 	def index
-		@candidates = Candidate.all
+		@candidates = Candidate.verified
 	end
 
 end

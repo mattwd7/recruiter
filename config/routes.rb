@@ -4,5 +4,6 @@ Rails.application.routes.draw do
   resources :candidates
 
   get 'scrapers', to: 'scrapers#index'
-  get 'scrapers/candidate_emails', to: 'scrapers#candidate_emails'
+  post 'scrapers/candidate_emails', to: 'scrapers#candidate_emails'
+  post 'scrapers/verify_emails', to: 'scrapers#verify_emails'
 end

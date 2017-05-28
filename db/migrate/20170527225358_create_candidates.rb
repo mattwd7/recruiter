@@ -4,7 +4,7 @@ class CreateCandidates < ActiveRecord::Migration[5.1]
     	t.string :email
     	t.string :first_name
     	t.string :last_name
-    	t.boolean :verified
+    	t.boolean :verified, default: false
 
     	t.timestamps
     end
