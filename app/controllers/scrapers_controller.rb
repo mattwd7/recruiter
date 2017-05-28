@@ -1,4 +1,4 @@
-class ScrapersController < ApplicationController
+class ScrapersController < SecureController
 
 	def index
 		@candidates = Candidate.unverified

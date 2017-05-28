@@ -1,5 +1,4 @@
-class CandidatesController < ApplicationController
-
+class CandidatesController < SecureController
 	def index
 		@candidates = Candidate.verified
 	end
