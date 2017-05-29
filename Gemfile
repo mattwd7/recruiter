@@ -7,7 +7,7 @@ end
 
 gem 'rails', '~> 5.1.1'
 gem 'pg'
-# gem 'mechanize'
+gem 'mechanize'
 gem 'watir'
 gem 'nokogiri'
 gem 'haml'
