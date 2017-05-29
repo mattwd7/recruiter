@@ -13,7 +13,7 @@ class StackOverflowCrawler < Crawler
 
 	def next_page
 		if next_element = @search_results.css(".prev-next.job-link.test-pagination-next").first
-			next_element.attributes["href"].value
+			self.class::DOMAIN + next_element.attributes["href"].value
 		end
 	end
 
