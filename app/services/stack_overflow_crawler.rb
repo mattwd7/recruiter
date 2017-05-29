@@ -1,44 +1,8 @@
-class StackOverflowCrawler
+class StackOverflowCrawler < Crawler
 	DOMAIN = "https://stackoverflow.com"
 	ROOT_URL = "https://stackoverflow.com/jobs"
 
-	def self.call
-		new.call
-	end
-
-	def initialize
-		@root = agent.get(ROOT_URL)
-	end
-
-	def call
-		submit_search
-		page_count = 0
-
-		loop do
-			page_count += 1
-			listing_links.each do |listing|
-				@listing_page = agent.get(listing)
-
-				company = Company.find_or_create_with(company_attributes)		
-				company.create_listing_if_new(listing_attributes, tag_names) if company.id
-
-				puts "Created listing: '#{clean_text(title)}'"
-				puts "PAGE COUNT: #{page_count}"
-				sleep rand(1..3)
-			end
-
-			break unless next_page
-			@search_results = @agent.get(DOMAIN + next_page)
-		end
-	end
-
 	private
-
-	def agent
-		@agent ||= Mechanize.new.tap do |a|
-			a.user_agent_alias = 'Mac Safari'
-		end
-	end
 
 	def submit_search
 		@search_results = @root.form_with(id: "job-search-form") do |search|
@@ -53,28 +17,13 @@ class StackOverflowCrawler
 		end
 	end
 
-	def company_attributes
-		{
-			name: company_name,
-			about: about_company,
-		}.transform_values { |v| clean_text(v) }
-	end
-
-	def listing_attributes
-		{
-			title: title,
-			location: location,
-			description: job_description,
-			skills: skills,
-		}.transform_values { |v| clean_text(v) }
-	end
-
 	def listing_links
+		puts @search_results.css(".-item.-job.-job-item", ".job-link")
 		@search_results
-			.css(".-item.-job.-job-item")
-			.css(".job-link")
-			.map { |link| DOMAIN + link.attributes["href"].value}
-			.reject { |link| link.match /developer-jobs-using/ }
+			.css(".-item.-job.-job-item", ".job-link")
+			.map { |link| self.class::DOMAIN + link.attributes["href"]&.value}
+			.reject { |link| link&.match /developer-jobs-using/ }
+			.compact
 	end
 
 	def company_name
@@ -103,11 +52,5 @@ class StackOverflowCrawler
 
 	def about_company
 		@listing_page.css(".description")[2]&.text
-	end
-
-	def clean_text(text)
-		return unless text.is_a?(String)
-
-		text.strip.gsub(/\r|\n/, "").gsub(/\s{2,}/, " ")
 	end
 end
