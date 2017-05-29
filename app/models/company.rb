@@ -1,6 +1,8 @@
 class Company < ActiveRecord::Base
 	has_many :listings
 
+	validates_presence_of :name
+
 	def self.find_or_create_with(attrs)
 		company = Company.find_or_initialize_by(
 			name: attrs[:name]

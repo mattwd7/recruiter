@@ -7,19 +7,28 @@ class StackOverflowCrawler
 	end
 
 	def initialize
-		@page = agent.get(ROOT_URL)
+		@root = agent.get(ROOT_URL)
 	end
 
 	def call
 		submit_search
-		listing_links.each do |listing|
-			@page = agent.get(listing)
+		page_count = 0
 
-			company = Company.find_or_create_with(company_attributes)			
-			company.create_listing_if_new(listing_attributes, tag_names)
+		loop do
+			page_count += 1
+			listing_links.each do |listing|
+				@listing_page = agent.get(listing)
 
-			puts "Created listing: '#{clean_text(title)}'"
-			sleep rand(1..3)
+				company = Company.find_or_create_with(company_attributes)		
+				company.create_listing_if_new(listing_attributes, tag_names) if company.id
+
+				puts "Created listing: '#{clean_text(title)}'"
+				puts "PAGE COUNT: #{page_count}"
+				sleep rand(1..3)
+			end
+
+			break unless next_page
+			@search_results = @agent.get(DOMAIN + next_page)
 		end
 	end
 
@@ -32,6 +41,16 @@ class StackOverflowCrawler
 	end
 
 	def submit_search
+		@search_results = @root.form_with(id: "job-search-form") do |search|
+			search.q = "Software Engineer"
+			search.l = "New York, NY"
+		end.submit
+	end
+
+	def next_page
+		if next_element = @search_results.css(".prev-next.job-link.test-pagination-next").first
+			next_element.attributes["href"].value
+		end
 	end
 
 	def company_attributes
@@ -51,7 +70,7 @@ class StackOverflowCrawler
 	end
 
 	def listing_links
-		@page
+		@search_results
 			.css(".-item.-job.-job-item")
 			.css(".job-link")
 			.map { |link| DOMAIN + link.attributes["href"].value}
@@ -59,31 +78,31 @@ class StackOverflowCrawler
 	end
 
 	def company_name
-		@page.css(".employer").first.text
+		@listing_page.css(".employer").first&.text
 	end
 
 	def title
-		@page.css(".title.job-link").first.text
+		@listing_page.css(".title.job-link").first&.text
 	end
 
 	def tag_names
-		@page.css(".post-tag.job-link.no-tag-menu").map(&:text)
+		@listing_page.css(".post-tag.job-link.no-tag-menu").map(&:text)
 	end
 
 	def location
-		@page.css(".location").first.text
+		@listing_page.css(".location").first&.text
 	end
 
 	def job_description
-		@page.css(".description")[0]&.text
+		@listing_page.css(".description")[0]&.text
 	end
 
 	def skills
-		@page.css(".description")[1]&.text
+		@listing_page.css(".description")[1]&.text
 	end
 
 	def about_company
-		@page.css(".description")[2]&.text
+		@listing_page.css(".description")[2]&.text
 	end
 
 	def clean_text(text)

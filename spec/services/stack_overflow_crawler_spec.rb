@@ -49,6 +49,17 @@ describe StackOverflowCrawler do
 		expect(Company.count).to eq(1)
 	end
 
+	context "without a company name" do
+		let(:company_name) { nil }
+		
+		it "does not create a company or listings" do
+			scrape
+
+			expect(Company.count).to eq(0)
+			expect(Listing.count).to eq(0)
+		end
+	end
+
 	context "with existing records" do
 		let(:different_title) { "Mid-level Software Engineer" }
 		let(:different_tag_names) { %w(ruby html java c#) }
