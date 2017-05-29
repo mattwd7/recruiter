@@ -13,16 +13,16 @@ class StackOverflowCrawler < Crawler
 
 	def next_page
 		if next_element = @search_results.css(".prev-next.job-link.test-pagination-next").first
-			next_element.attributes["href"].value
+			self.class::DOMAIN + next_element.attributes["href"].value
 		end
 	end
 
 	def listing_links
 		puts @search_results.css(".-item.-job.-job-item", ".job-link")
 		@search_results
-			.css(".-item.-job.-job-item", ".job-link")
-			.map { |link| self.class::DOMAIN + link.attributes["href"]&.value}
-			.reject { |link| link&.match /developer-jobs-using/ }
+			.css(".-item.-job.-job-item .job-link")
+			.map { |link| self.class::DOMAIN + link.attributes["href"].value}
+			.reject { |link| link.match /developer-jobs-using/ }
 			.compact
 	end
 

@@ -27,8 +27,8 @@ class Crawler
 				sleep rand(1..3)
 			end
 
-			break unless next_page
-			@search_results = @agent.get(self.class::DOMAIN + next_page)
+			break if !next_page || listing_links.empty?
+			@search_results = @agent.get(next_page)
 		end
 	end
 
