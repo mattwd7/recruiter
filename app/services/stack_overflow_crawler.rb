@@ -15,24 +15,9 @@ class StackOverflowCrawler
 		listing_links.each do |listing|
 			@page = agent.get(listing)
 
-			company = Company.find_or_initialize_by(
-				name: clean_text(company_name)
-			)
+			company = Company.find_or_create_with(company_attributes)			
+			company.create_listing_if_new(listing_attributes, tag_names)
 
-			unless company.id
-				company.about = about_company
-				company.save
-			end
-
-			unless company.listings.where(title: clean_text(title)).exists?
-				listing = Listing.create(
-					listing_attributes.merge({
-						company_id: company.id,
-					})
-				)
-				listing.create_listing_tags(tag_names)
-			end
-			
 			puts "Created listing: '#{clean_text(title)}'"
 			sleep rand(1..3)
 		end
@@ -47,6 +32,13 @@ class StackOverflowCrawler
 	end
 
 	def submit_search
+	end
+
+	def company_attributes
+		{
+			name: company_name,
+			about: about_company,
+		}.transform_values { |v| clean_text(v) }
 	end
 
 	def listing_attributes
@@ -95,9 +87,8 @@ class StackOverflowCrawler
 	end
 
 	def clean_text(text)
-		return unless text
+		return unless text.is_a?(String)
 
 		text.strip.gsub(/\r|\n/, "").gsub(/\s{2,}/, " ")
 	end
-
 end

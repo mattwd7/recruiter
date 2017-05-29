@@ -4,7 +4,7 @@ class Listing < ActiveRecord::Base
 
 	belongs_to :company
 
-	def create_listing_tags(tag_names)
+	def create_tags(tag_names)
 		tag_names.each do |name|
 			self.tags << Tag.find_or_create_by(name: name)
 		end
