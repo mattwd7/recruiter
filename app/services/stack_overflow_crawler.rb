@@ -15,16 +15,24 @@ class StackOverflowCrawler
 		listing_links.each do |listing|
 			@page = agent.get(listing)
 
-			company = Company.find_or_create_by(
+			company = Company.find_or_initialize_by(
 				name: clean_text(company_name)
 			)
-			company.update_attributes(about: about_company)
 
-			listing = Listing.create(
-				listing_attributes.merge({
-					company_id: company.id,
-				})
-			)
+			unless company.id
+				company.about = about_company
+				company.save
+			end
+
+			unless company.listings.where(title: clean_text(title)).exists?
+				listing = Listing.create(
+					listing_attributes.merge({
+						company_id: company.id,
+					})
+				)
+				listing.create_listing_tags(tag_names)
+			end
+			
 			puts "Created listing: '#{clean_text(title)}'"
 			sleep rand(1..3)
 		end
@@ -66,7 +74,7 @@ class StackOverflowCrawler
 		@page.css(".title.job-link").first.text
 	end
 
-	def tags
+	def tag_names
 		@page.css(".post-tag.job-link.no-tag-menu").map(&:text)
 	end
 
