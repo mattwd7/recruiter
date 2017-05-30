@@ -12,6 +12,7 @@ gem 'watir'
 gem 'nokogiri'
 gem 'haml'
 gem 'devise'
+gem 'pdf-reader'
 
 # Use Puma as the app server
 gem 'puma', '~> 3.7'
