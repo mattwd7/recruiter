@@ -4,7 +4,7 @@ class EmailCrawler
 	def self.test
 		url = "http://nyuwinc.org/"
 		# url = "http://hackny.org/2015/06/announcing-the-class-of-2015-hackny-fellows/"
-		self.for_domain(url, limit: 15)
+		self.for_domain(url, limit: 5)
 	end
 
 	def self.for_url(url)
@@ -58,10 +58,14 @@ class EmailCrawler
 		@emails.each { |e| puts e }
 	end
 
+	def common_externals
+		@visited_external_urls.sort
+	end
+
 	private
 
 	def domain
-		@domain ||= (url.match /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n]+)/im)[0]
+		@domain ||= parse_domain(url)
 	end
 
 	def crawl_page(url)
@@ -71,7 +75,7 @@ class EmailCrawler
 			candidate.assign_attributes(origin_url: url)
 			candidate.save
 		end
-		try_external_links
+		visit_external_links
 		@visited_internal_urls << url
 		build_sitemap
 
@@ -83,8 +87,7 @@ class EmailCrawler
 		@visited_internal_urls << url
 	end
 
-	def try_external_links
-		puts "External count: #{external_links.count}"
+	def visit_external_links
 		(external_links - @visited_external_urls).each do |url|
 			PersonalPageCrawler.call(url)
 			@visited_external_urls << url
@@ -95,7 +98,9 @@ class EmailCrawler
 
 	def external_links
 		@page.links.map(&:href).select do |href|
-			href.match(/^http/) && !href.match(domain)
+			href.match(/^http/) &&
+				!href.match(domain) &&
+				!parse_domain(href).match(EXTERNAL_BLACKLIST.join("|"))
 		end.uniq
 	end
 
