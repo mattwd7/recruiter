@@ -1,15 +1,18 @@
 module CrawlerCommon
 	def parse_emails_from_html(html, url)
-		text = if html.match /mailto\:/
-				browser = Watir::Browser.new
-				browser.goto url
-				browser.html
-			else
-				html
-			end
-		
-		browser&.close
-		parse_emails(text)
+		if html.match /mailto\:/
+			parse_emails_with_browser(url)
+		else
+			parse_emails(html)
+		end
+	end
+
+	def parse_emails_with_browser(url)
+		browser = Watir::Browser.new
+		browser.goto url
+		emails = parse_emails(browser.html)
+		browser.close
+		emails
 	end
 
 	def parse_emails(text)

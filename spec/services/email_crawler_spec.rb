@@ -7,7 +7,7 @@ describe EmailCrawler do
 	let(:email_3) { "turd@test.com" }
 	let(:html) { "some garbage#{email_1} and more #{email_2}" }
 	let(:internal_link) { "/about" }
-	let(:external_link) { "http://personalPageMaybe.com" }
+	let(:external_link) { "http://www.personalPageMaybe.com" }
 
 	before do
 		allow_any_instance_of(described_class).to receive(:sleep)
@@ -16,7 +16,10 @@ describe EmailCrawler do
 			.and_return(
 				double(
 					body: html,
-					links: [double(href: internal_link), double(href: external_link)]
+					links: [
+						double(href: internal_link),
+						double(href: external_link)
+					]
 				)
 			)
 	end
@@ -54,9 +57,5 @@ describe EmailCrawler do
 
 			subject
 		end
-	end
-
-	describe "continue" do
-
 	end
 end

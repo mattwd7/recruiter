@@ -4,7 +4,7 @@ class EmailCrawler
 	def self.test
 		url = "http://nyuwinc.org/"
 		# url = "http://hackny.org/2015/06/announcing-the-class-of-2015-hackny-fellows/"
-		self.for_domain(url, limit: 5)
+		self.for_domain(url, limit: 15)
 	end
 
 	def self.for_url(url)
@@ -37,13 +37,13 @@ class EmailCrawler
 			crawl_page(url)
 			page_count += 1
 			break if (!@full_sitemap || (limit && page_count >= limit.to_i))
-			sleep rand(1..3)
+			sleep rand(2..4)
 		end
 
 		end_process
-	# rescue => e
-	# 	puts e
-	# 	end_process
+	rescue => e
+		puts e
+		end_process
 	end
 
 	def remaining_urls
@@ -75,6 +75,9 @@ class EmailCrawler
 		@visited_internal_urls << url
 		build_sitemap
 
+	rescue Mechanize::ResponseCodeError
+		parse_emails_with_browser(url)
+		@visited_internal_urls << url
 	rescue => e
 		puts "ERROR 1: #{e}"
 		@visited_internal_urls << url
@@ -93,7 +96,7 @@ class EmailCrawler
 	def external_links
 		@page.links.map(&:href).select do |href|
 			href.match(/^http/) && !href.match(domain)
-		end
+		end.uniq
 	end
 
 	def build_sitemap
