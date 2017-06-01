@@ -2,8 +2,8 @@ class EmailCrawler
 	include CrawlerCommon
 
 	def self.test
-		# url = "http://nyuwinc.org/"
-		url = "http://hackny.org/2015/06/announcing-the-class-of-2015-hackny-fellows/"
+		url = "http://nyuwinc.org/"
+		# url = "http://hackny.org/2015/06/announcing-the-class-of-2015-hackny-fellows/"
 		self.for_domain(url, limit: 5)
 	end
 
@@ -25,7 +25,7 @@ class EmailCrawler
 		@emails = []
 		@visited_pages = []
 		@pages_to_visit = [url]
-		@browser = Watir::Browser.new
+		@agent = Mechanize.new
 	end
 
 	def crawl_for_emails(limit: nil)
@@ -64,31 +64,36 @@ class EmailCrawler
 	end
 
 	def crawl_page(url)
-		@browser.goto url
-		parse_emails_from(@browser.html).each do |email|
-			Candidate.find_or_create_by(email: email)
+		@page = @agent.get(url)
+		parse_emails_from_html(@page.body, url).each do |email|
+			candidate = Candidate.find_or_initialize_by(email: email)
+			candidate.assign_attributes(origin_url: url)
+			candidate.save
 		end
 		try_external_links
 		@visited_pages << url
 		build_sitemap
 
-	# rescue
-	# 	@visited_pages << url
+	rescue => e
+		puts "ERROR 1: #{e}"
+		@visited_pages << url
 	end
 
 	def try_external_links
 		puts "External count: #{external_links.count}"
 		external_links.each { |url| PersonalPageCrawler.call(url) }
+	rescue => e
+		puts "ERROR 2: #{e}"
 	end
 
 	def external_links
-		@browser.links.map(&:href).select do |href|
-			(href&.length || 0) > 2 && !href.match(domain)
+		@page.links.map(&:href).select do |href|
+			href.match(/^http/) && !href.match(domain)
 		end
 	end
 
 	def build_sitemap
-		relative_paths = @browser.links.map(&:href).compact.map do |href|
+		relative_paths = @page.links.map(&:href).compact.map do |href|
 			leading_slash = (domain[-1] == '/' ? '/' : '')
 			href.gsub(domain, leading_slash)
 		end
@@ -110,12 +115,11 @@ class EmailCrawler
 	end
 
 	def full_path(relative_path)
-		"#{domain}#{relative_path[1..-1]}"
+		"#{domain}#{relative_path}"
 	end
 
 	def end_process
 		@emails.uniq!
-		@browser.close
 		self
 	end
 end

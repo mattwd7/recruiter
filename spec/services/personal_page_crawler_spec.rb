@@ -50,14 +50,4 @@ describe PersonalPageCrawler do
 			expect(Candidate.first.resume_url).to eq(resume_link)
 		end
 	end
-
-	context "without a .pdf on the page" do
-		let(:resume_link) { nil }
-
-		it "creates a candidate without a resume_url" do
-			expect { subject }.to change { Candidate.count }.by(1)
-			expect(Candidate.first.email).to eq(page_email)
-			expect(Candidate.first.resume_url).to eq(nil)
-		end
-	end
 end

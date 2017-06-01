@@ -11,49 +11,62 @@ class PersonalPageCrawler
 
 	def initialize(url)
 		@url = url
-		@browser = Watir::Browser.new
+		@page = Mechanize.new.get(url)
+	rescue => e
+		"ERROR 1.5: #{e}"
 	end
 
 	def crawl
-		@browser.goto url
+		puts "crawling external: #{url}"
 		if looks_like_personal_page?
-			puts "!!! PERSONAL PAGE: #{url}"
+			puts "!!! PERSONAL PAGE !!!"
+
 			candidate = Candidate.find_or_create_by(email: candidate_email) if candidate_email
 			find_and_parse_resume(candidate)
 		end
-
-		@browser.close
 	end
 
 	private
 
 	def looks_like_personal_page?
-		@browser.html.scan(/#{CLUE_WORDS.join('|')}/i)
+		@page.body.scan(/#{CLUE_WORDS.join('|')}/i)
 			.map(&:downcase).uniq.count > 1
 	end
 
 	def candidate_email
-		emails = parse_emails_from(@browser.html).uniq
+		emails = parsed_emails.uniq
 		emails.count > 1 ? nil : emails.first
+	end
+
+	def parsed_emails
+		@emails ||= parse_emails_from_html(@page.body, url)
 	end
 
 	def find_and_parse_resume(candidate)
 		if pdf_link
-			full_path = (pdf_link[0] == "/") ? url + pdf_link : pdf_link
-			file = open(full_path)
+			file = open(pdf_path)
 
-			page = PDF::Reader.new(file).pages.first
-			email = parse_emails_from(page.text).first || candidate&.email
+			pdf_first_page = PDF::Reader.new(file).pages.first
+			email = parse_emails(pdf_first_page.text).first || candidate&.email
 			candidate ||= Candidate.find_or_create_by(email: email)
-			if candidate.update_attributes(email: email, resume_url: full_path)
+			if candidate.update_attributes(email: email, resume_url: pdf_path, origin_url: url)
 				# TODO: tags!!!
 			end
 		end
+	rescue => e
+		puts "ERROR 3: #{e}"
 	end
 
 	def pdf_link
-		@pdf_link ||= @browser.links.map(&:href).select do |s|
+		@pdf_link ||= @page.links.map(&:href).select do |s|
 			s&.match /(docs\.google)|(\.pdf)/
 		end[0]
+	end
+
+	def pdf_path
+		return pdf_link if pdf_link.match /^http/
+
+		slash = (pdf_link[0] == "/") ? "" : "/"
+		url + slash + pdf_link
 	end
 end
