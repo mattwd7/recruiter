@@ -50,7 +50,7 @@ class PersonalPageCrawler
 			email = parse_emails(pdf_first_page.text).first || candidate&.email
 			candidate ||= Candidate.find_or_create_by(email: email)
 			if candidate.update_attributes(email: email, resume_url: pdf_path, origin_url: url)
-				# TODO: tags!!!
+				candidate.create_tags(parse_tags(pdf_first_page.text))
 			end
 		end
 	rescue => e
@@ -68,5 +68,10 @@ class PersonalPageCrawler
 
 		slash = (pdf_link[0] == "/") ? "" : "/"
 		url + slash + pdf_link
+	end
+
+	def parse_tags(text)
+		re = Tag.pluck(:name).map { |tag| Regexp.escape(tag) }.join("|")
+		text.scan /#{re}/
 	end
 end
