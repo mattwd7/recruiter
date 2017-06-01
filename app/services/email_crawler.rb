@@ -23,15 +23,16 @@ class EmailCrawler
 		@url = url
 		@full_sitemap = full_sitemap
 		@emails = []
-		@visited_pages = []
-		@pages_to_visit = [url]
+		@visited_internal_urls = []
+		@visited_external_urls = []
+		@urls_to_visit = [url]
 		@agent = Mechanize.new
 	end
 
 	def crawl_for_emails(limit: nil)
 		page_count = 0
 
-		while url = remaining_pages.first do
+		while url = remaining_urls.first do
 			puts "Crawling: #{url}"
 			crawl_page(url)
 			page_count += 1
@@ -45,16 +46,16 @@ class EmailCrawler
 	# 	end_process
 	end
 
+	def remaining_urls
+		@urls_to_visit - @visited_internal_urls
+	end
+
 	def continue(limit: nil)
 		crawl_for_emails(limit: limit.to_i)
 	end
 
 	def show_emails
 		@emails.each { |e| puts e }
-	end
-
-	def remaining_pages
-		@pages_to_visit - @visited_pages
 	end
 
 	private
@@ -71,17 +72,20 @@ class EmailCrawler
 			candidate.save
 		end
 		try_external_links
-		@visited_pages << url
+		@visited_internal_urls << url
 		build_sitemap
 
 	rescue => e
 		puts "ERROR 1: #{e}"
-		@visited_pages << url
+		@visited_internal_urls << url
 	end
 
 	def try_external_links
 		puts "External count: #{external_links.count}"
-		external_links.each { |url| PersonalPageCrawler.call(url) }
+		(external_links - @visited_external_urls).each do |url|
+			PersonalPageCrawler.call(url)
+			@visited_external_urls << url
+		end
 	rescue => e
 		puts "ERROR 2: #{e}"
 	end
@@ -102,7 +106,7 @@ class EmailCrawler
 			full_path = full_path(relative_path)
 
 			if is_valid_unvisited_path(relative_path)
-				@pages_to_visit << full_path
+				@urls_to_visit << full_path
 			end
 		end
 	end
@@ -110,8 +114,8 @@ class EmailCrawler
 	def is_valid_unvisited_path(relative_path)
 		relative_path.length > 1 &&
 			relative_path[0] == "/" &&
-			!@visited_pages.include?(full_path(relative_path)) &&
-			!@pages_to_visit.include?(full_path(relative_path))
+			!@visited_internal_urls.include?(full_path(relative_path)) &&
+			!@urls_to_visit.include?(full_path(relative_path))
 	end
 
 	def full_path(relative_path)
