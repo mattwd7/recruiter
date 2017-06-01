@@ -9,12 +9,6 @@ class DiceCrawler < Crawler
 
 	private
 
-	def agent
-		@agent ||= Mechanize.new.tap do |a|
-			a.user_agent_alias = 'Mac Safari'
-		end
-	end
-
 	def submit_search
 		@search_results = @root.form_with(id: "search-form") do |search|
 			search.q = "Software Engineer"
