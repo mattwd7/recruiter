@@ -1,6 +1,5 @@
 require "rails_helper"
 
-
 describe StackOverflowCrawler do
 	let(:company_name) { "E Corp" }
 	let(:tag_names) { %w(ruby html scss javascript) }
@@ -23,7 +22,7 @@ describe StackOverflowCrawler do
 	end
 
 	def scrape
-		described_class.call
+		described_class.call(title, location)
 	end
 
 	def stub_described_class(**additional_options)

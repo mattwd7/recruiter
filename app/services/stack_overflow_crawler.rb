@@ -6,8 +6,8 @@ class StackOverflowCrawler < Crawler
 
 	def submit_search
 		@search_results = @root.form_with(id: "job-search-form") do |search|
-			search.q = "Software Engineer"
-			search.l = "New York, NY"
+			search.q = @search_title
+			search.l = @search_location
 		end.submit
 	end
 
@@ -18,7 +18,6 @@ class StackOverflowCrawler < Crawler
 	end
 
 	def listing_links
-		puts @search_results.css(".-item.-job.-job-item", ".job-link")
 		@search_results
 			.css(".-item.-job.-job-item .job-link")
 			.map { |link| self.class::DOMAIN + link.attributes["href"].value}

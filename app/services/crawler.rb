@@ -2,12 +2,17 @@ class Crawler
 	DOMAIN = ""
 	ROOT_URL = ""
 
-	def self.call
-		new.call
+	def self.call(search_title = nil, search_location = nil)
+		new(
+			search_title || "Software Engineer",
+			search_location || "New York, NY"
+		).call
 	end
 
-	def initialize
+	def initialize(search_title, search_location)
 		@root = agent.get(self.class::ROOT_URL)
+		@search_title = search_title
+		@search_location = search_location
 	end
 
 	def call
