@@ -21,8 +21,13 @@ class PersonalPageCrawler
 		if looks_like_personal_page?
 			puts "!!! PERSONAL PAGE !!!"
 
-			candidate = Candidate.find_or_create_by(email: candidate_email, origin_url: url) if candidate_email
-			find_and_parse_resume(candidate)
+			if candidate_email
+				candidate = Candidate.find_or_create_by(
+					email: candidate_email,
+					origin_url: url
+				)
+				find_and_parse_resume(candidate)
+			end
 		end
 	end
 

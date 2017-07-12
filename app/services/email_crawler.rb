@@ -89,6 +89,7 @@ class EmailCrawler
 
 	def visit_external_links
 		(external_links - @visited_external_urls).each do |url|
+			puts "URL: #{url}"
 			PersonalPageCrawler.call(url)
 			@visited_external_urls << url
 		end
@@ -97,7 +98,7 @@ class EmailCrawler
 	end
 
 	def external_links
-		@page.links.map(&:href).select do |href|
+		parse_links(@page).select do |href|
 			href.match(/^http/) &&
 				!href.match(domain) &&
 				!parse_domain(href).match(EXTERNAL_BLACKLIST.join("|"))
